@@ -42,6 +42,95 @@ const count = $ref(1);
 console.log(count.value);
 ```
 
-8. ref 用于任意数据类型 reactive 仅用于对象
-9. toRef: 将 reactive 定义的响应式数据的某个属性转换为某个 ref 响应式数据
-10. toRefs：批量转换 解构保持响应式
+8. ref 可以获取 DOM 节点/组件
+9. ref 用于任意数据类型 reactive 仅用于对象
+10. toRef: 将 reactive 定义的响应式数据的某个属性转换为某个 ref 响应式数据
+11. toRefs：批量转换 解构保持响应式
+12. onMounted 相当于 vue2 中的 mounted 生命周期
+13. 通过 createApp().component(组件名， 组件配置) 注册全局组件
+14. setup 函数的第一参数是组件的 props 属性 （获取组件 props 属性值是最频繁操作）
+15. setup 函数的第二参数是组件的 attrs、emit、slots、expose 的集合构成 context 对象
+16. context.attrs => this.$attrs (属性)
+17. context.emit => this.$emit （函数）
+18. context.slots => this.$slots （属性）
+19. context.expose 对外暴露组件的数据
+20. 在 vue3 组件中 只有通过 emits 选项配置的事件名才被认定为自定义事件
+21. v-model 在 vue3 中的变化 v-model:key 可以传递参数了 （vue2 中一个组件只能有一个 v-model）
+22. v-model 更新绑定的值的自定义事件发生了变化 update:key
+
+```jsx
+  /* vue2 */
+  <MyComponent v-model="v1"/>
+  <MyComponent :value="v1" @input="(e) => v1=e.target.value"/>
+  /* vue3 */
+  <MyComponent v-model:value="v1" v-model:index="v2"/>
+  <MyComponent :value="v1" @update:value="(e) => v1=e.target.value"
+               :index="v2" @update:index="(e) => v2=e.target.value" />
+  /* v-model:属性名="属性值"
+   :属性名="属性值" @update:属性名 ="(e) => 属性值 = e " */
+```
+
+23. 使用 compute API 来定义计算属性
+
+```js
+import { ref, computed } from "vue";
+export default {
+  setup() {
+    const a = ref(1);
+    const b = ref(2);
+    // 定义计算属性 求a和b的和
+    const sum = computed(() => a.value + b.value);
+    const sum = computed({
+      get: () => a.value + b.value,
+    });
+    const sum = computed({
+      get: () => a.value + b.value,
+      set: (value) => a.value = b.value = value/2;
+    });
+  },
+};
+```
+
+24. watch/watchEffect 是一个组合式 API 需要按需引入然后使用
+25. watch 监听 ref 数据 watch([ref1, ref2...], () => {})
+26. 如何取消 watch 的监听： watch 的返回值就是一个取消当前监听的函数 执行该函数就可以取消监听
+27. watch 的第三个参数对象是可选的 immediate: true(初始化执行一次) deep: true 对于多层级嵌套数据使用
+
+```js
+import { ref, watch } from "vue";
+export default {
+  setup() {
+    const a = ref(1);
+    const b = ref(2);
+    // 监听单个ref
+    watch(a, () => console.log("a changed"));
+    watch(b, () => console.log("b changed"));
+    watch(
+      () => a.value,
+      () => console.log("a changed")
+    );
+    watch(
+      () => b.value,
+      () => console.log("b changed")
+    );
+    watch([a], () => console.log("a changed"));
+    watch([() => b.value], () => console.log("b changed"));
+    const stopWatchCount = watch(
+      [count],
+      () => {
+        console.log("count changed!!");
+      },
+      {
+        // 该watch的回调函数初始化执行一次
+        immediate: true,
+        // 深度监听
+        deep: true,
+      }
+    );
+  },
+};
+```
+
+28. watchEffect 99% 除了(第一次不执行、获取监听数据改变前的值)使用 watch
+
+29. nextTick 是一个组合式 API 需要按需引入然后使用
